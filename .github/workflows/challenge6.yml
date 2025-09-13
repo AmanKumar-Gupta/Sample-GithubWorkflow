@@ -5,7 +5,7 @@ on:
     branches: [ main ]   # runs when you push to main branch
 
 env:
-  IMAGE_NAME: amankumargupta/myflaskapp   # 👈 change this once, no need for secrets
+  IMAGE_NAME: amankumargupta/myflaskapp  
 
 jobs:
   build-deploy:
@@ -19,7 +19,6 @@ jobs:
       # 2) Log in to Docker Hub
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        # 👆 You must set DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD in repo Secrets
 
       # 3) Build and push image
       - name: Build & Push Docker image
