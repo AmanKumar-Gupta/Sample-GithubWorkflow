@@ -1,0 +1,58 @@
+name: Docker Build & Deploy
+
+on:
+  push:
+    branches: [ main ]   # runs when you push to main branch
+
+env:
+  IMAGE_NAME: amankumargupta/myflaskapp   # 👈 change this once, no need for secrets
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Log in to Docker Hub
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        # 👆 You must set DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD in repo Secrets
+
+      # 3) Build and push image
+      - name: Build & Push Docker image
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:latest
+
+      # 4) Run container on GitHub runner
+      - name: Run container
+        run: |
+          docker run -d --name flask-app -p 5000:5000 $IMAGE_NAME:latest
+          sleep 5   # wait for container to start
+
+      # 5) Validate app
+      - name: Validate app response
+        run: |
+          curl -f http://localhost:5000/ | grep "Hello, Welcome to Season 2!"
+          echo "✅ Validation successful"
+
+      # 6) Send email (using Gmail SMTP)
+      - name: Send email notification
+        if: always()   # run even if previous step fails
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
+          subject: "Deployment ${{ job.status }} - ${{ github.repository }}"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.GMAIL_USERNAME }}
+          body: |
+            Deployment status: ${{ job.status }}
+            Repo: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
