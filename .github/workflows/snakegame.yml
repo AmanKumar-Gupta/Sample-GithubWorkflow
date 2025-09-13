@@ -13,12 +13,13 @@ jobs:
     steps:
       - name: Clone Snake Game repository
         run: |
-          git clone https://github.com/clear-code-projects/Snake
-          cd Snake
+          rm -rf /tmp/Snake
+          git clone https://github.com/clear-code-projects/Snake /tmp/Snake
+          cd /tmp/Snake
 
       - name: Build Docker Image
         run: |
-          cd Snake
+          cd /tmp/Snake
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/snake-game:latest .
 
       - name: Login to Docker Hub
