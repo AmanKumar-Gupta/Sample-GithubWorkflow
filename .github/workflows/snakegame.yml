@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: SelfHostedRunner
+    runs-on: self-hosted
 
     steps:
       - name: Clone Snake Game repository
